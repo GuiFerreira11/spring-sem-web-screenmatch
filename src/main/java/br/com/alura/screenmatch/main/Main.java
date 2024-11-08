@@ -4,13 +4,14 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
-import java.util.stream.Collectors;
 
 import br.com.alura.screenmatch.models.DadosSerie;
 import br.com.alura.screenmatch.models.DadosTemporada;
 import br.com.alura.screenmatch.models.Serie;
+import br.com.alura.screenmatch.repository.SerieRepository;
 import br.com.alura.screenmatch.service.ConsumoApi;
 import br.com.alura.screenmatch.service.ConverteDados;
+import io.github.cdimascio.dotenv.Dotenv;
 
 public class Main {
 
@@ -18,10 +19,16 @@ public class Main {
   private ConsumoApi consumo = new ConsumoApi();
   private ConverteDados conversor = new ConverteDados();
 
+  private Dotenv dotenv = Dotenv.load();
   private final String ENDERECO = "http://www.omdbapi.com/?t=";
-  private final String API_KEY = "&apikey=e5a99d20";
+  private final String API_SECRET = dotenv.get("API_KEY_OMDB");
+  private final String API_KEY = "&apikey=" + API_SECRET;
 
-  private List<DadosSerie> dadosSeries = new ArrayList<>();
+  private SerieRepository repository;
+
+  public Main(SerieRepository repository) {
+    this.repository = repository;
+  }
 
   public void exibeMenu() {
 
@@ -71,8 +78,9 @@ public class Main {
 
   private void buscarSerieWeb() {
     DadosSerie dados = getDadosSerie();
-    dadosSeries.add(dados);
-    System.out.println(dados);
+    Serie serie = new Serie(dados);
+    repository.save(serie);
+    System.out.println(serie);
   }
 
   private void buscarEpisodiosPorSerie() {
@@ -89,12 +97,9 @@ public class Main {
   }
 
   private void listarSeriesBuscas() {
-    List<Serie> series = new ArrayList<>();
-    series = dadosSeries.stream()
-      .map(d -> new Serie(d))
-      .collect(Collectors.toList());
+    List<Serie> series = repository.findAll();
     series.stream()
-      .sorted(Comparator.comparing(Serie::getGenero))
-      .forEach(System.out::println);
+        .sorted(Comparator.comparing(Serie::getGenero))
+        .forEach(System.out::println);
   }
 }

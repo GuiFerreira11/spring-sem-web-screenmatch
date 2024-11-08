@@ -9,7 +9,7 @@ public class ConsultaGemini {
   public static String obterTraducao(String texto) {
 
     Dotenv dotenv = Dotenv.load();
-    String apiKey = dotenv.get("API_KEY");
+    String apiKey = dotenv.get("API_KEY_GEMINI");
     ChatLanguageModel gemini = GoogleAiGeminiChatModel.builder()
         .apiKey(apiKey)
         .modelName("gemini-1.5-flash")
