@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
+import br.com.alura.screenmatch.models.Categoria;
 import br.com.alura.screenmatch.models.DadosSerie;
 import br.com.alura.screenmatch.models.DadosTemporada;
 import br.com.alura.screenmatch.models.Episodio;
@@ -46,6 +47,11 @@ public class Main {
           1 - Buscar séries
           2 - Buscar eposódios
           3 - Listar séries buscadas
+          4 - Buscar série por título
+          5 - Buscar série por ator
+          6 - Top 5 séries
+          7 - Buscar séries por categoria
+          8 - Filtrar séries
 
           0 - sair
           """;
@@ -64,6 +70,21 @@ public class Main {
           break;
         case 3:
           listarSeriesBuscas();
+          break;
+        case 4:
+          buscarSeriePorTitulo();
+          break;
+        case 5:
+          buscarSeriePorAtor();
+          break;
+        case 6:
+          buscarTop5Series();
+          break;
+        case 7:
+          buscarPorCategoria();
+          break;
+        case 8:
+          buscarSeriePorTemporadaEAvaliacao();
           break;
         case 0:
           System.out.println("Saindo ...");
@@ -93,9 +114,7 @@ public class Main {
     listarSeriesBuscas();
     System.out.println("Escolha uma série para obter mais informações:");
     String nomeSerie = scanner.nextLine();
-    Optional<Serie> serie = series.stream()
-        .filter(s -> s.getTitulo().toLowerCase().contains(nomeSerie.toLowerCase()))
-        .findFirst();
+    Optional<Serie> serie = repository.findByTituloContainingIgnoreCase(nomeSerie);
 
     if (serie.isPresent()) {
 
@@ -128,5 +147,55 @@ public class Main {
     series.stream()
         .sorted(Comparator.comparing(Serie::getGenero))
         .forEach(System.out::println);
+  }
+
+  private void buscarSeriePorTitulo() {
+    System.out.println("Escolha uma série para obter mais informações:");
+    String nomeSerie = scanner.nextLine();
+    Optional<Serie> serie = repository.findByTituloContainingIgnoreCase(nomeSerie);
+
+    if (serie.isPresent()) {
+      System.out.println("Dados da série: " + serie.get());
+    } else {
+      System.out.println("Serie não encontrada!");
+    }
+  }
+
+  private void buscarSeriePorAtor() {
+    System.out.println("Digite o nome do ator que deseja procurar");
+    String nomeAtor = scanner.nextLine();
+    System.out.println("Avaliação minima:");
+    double avaliacaoSelecionada = scanner.nextDouble();
+    List<Serie> series = repository.findByAtoresContainingIgnoreCaseAndAvaliacaoGreaterThanEqual(nomeAtor,
+        avaliacaoSelecionada);
+    System.out.println("Séries encontradas com " + nomeAtor);
+    series.forEach(s -> System.out.println(s.getTitulo() + " - avaliação: " + s.getAvaliacao()));
+  }
+
+  private void buscarTop5Series() {
+    List<Serie> topSeries = repository.findTop5ByOrderByAvaliacaoDesc();
+    topSeries.forEach(s -> System.out.println(s.getTitulo() + " - avaliação: " + s.getAvaliacao()));
+  }
+
+  private void buscarPorCategoria() {
+    System.out.println("Qual a catagoria/gênero que deseja buscar?");
+    String categoriaBuscada = scanner.nextLine();
+    Categoria categoria = Categoria.fromPortugues(categoriaBuscada);
+    List<Serie> seriesPorCategoria = repository.findByGenero(categoria);
+    System.out.println("Séries da categoria " + categoriaBuscada);
+    seriesPorCategoria.forEach(s -> System.out.println(s.getTitulo() + " - avaliação: " + s.getAvaliacao()));
+  }
+
+  private void buscarSeriePorTemporadaEAvaliacao() {
+    System.out.println("Qual o limíte de temporadas da série?");
+    int limiteTemporadas = scanner.nextInt();
+    scanner.nextLine();
+    System.out.println("Qual a avaliação mínima?");
+    double avaliacaoMinima = scanner.nextDouble();
+    scanner.nextLine();
+    List<Serie> seriesFiltrada = repository
+        .findByTotalTemporadasLessThanEqualAndAvaliacaoGreaterThanEqual(limiteTemporadas, avaliacaoMinima);
+    System.out.println("Series filtradas:");
+    seriesFiltrada.forEach(s -> System.out.println(s.getTitulo() + " - avaliação: " + s.getAvaliacao()));
   }
 }

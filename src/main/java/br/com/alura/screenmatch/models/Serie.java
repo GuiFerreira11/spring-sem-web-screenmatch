@@ -6,6 +6,7 @@ import java.util.OptionalDouble;
 
 import br.com.alura.screenmatch.service.ConsultaGemini;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -23,6 +24,7 @@ public class Serie {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private long id;
+  @Column(unique = true)
   private String titulo;
   private Integer totalTemporadas;
   private Double avaliacao;
